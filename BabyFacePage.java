@@ -15,37 +15,41 @@ class BabyFacePage extends JFrame {
     public BabyFacePage(String username) {
         this.username = username;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
-        setLayout(new BorderLayout());
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-        try {
-            BufferedImage img = ImageIO.read(new File("image.jpg"));
-            setContentPane(new JLabel(new ImageIcon(img)));
-            pack();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // Scaled image
+        ImageIcon imageIcon = new ImageIcon("image.jpg"); 
+        Image image = imageIcon.getImage();
+        Image scaledImage = image.getScaledInstance(600, 400, java.awt.Image.SCALE_SMOOTH); 
+        setContentPane(new JLabel(new ImageIcon(scaledImage)));
 
         // Conversation panel
         JPanel conversationPanel = new JPanel();
         conversationArea = new JTextArea(10, 40);
         conversationArea.setEditable(false);
-        conversationPanel.add(conversationArea);
-        add(conversationPanel, BorderLayout.NORTH);
+        conversationPanel.add(new JScrollPane(conversationArea));
+        add(conversationPanel);
 
         // User input panel
         JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+        JLabel askAriLabel = new JLabel("Ask Ari:");
         inputField = new JTextField(40);
+        JPanel buttonPanel = new JPanel();
         JButton submitButton = new JButton("Submit");
         JButton logoutButton = new JButton("Logout");
+        buttonPanel.add(submitButton);
+        buttonPanel.add(logoutButton);
+        inputPanel.add(askAriLabel);
         inputPanel.add(inputField);
-        inputPanel.add(submitButton);
-        inputPanel.add(logoutButton);
-        add(inputPanel, BorderLayout.SOUTH);
+        inputPanel.add(buttonPanel);
+        add(inputPanel);
 
         // Add action listeners to buttons
         submitButton.addActionListener(e -> submitQuestion());
         logoutButton.addActionListener(e -> logout());
+
+        pack();
     }
 
     private void submitQuestion() {
