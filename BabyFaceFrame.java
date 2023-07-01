@@ -1,17 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.nio.file.*;
+import java.security.*;
+import java.math.*;
 import java.io.*;
-
-public class BabyFaceGUI {
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new BabyFaceFrame();
-            frame.setVisible(true);
-        });
-    }
-}
 
 class BabyFaceFrame extends JFrame {
 
@@ -55,18 +47,15 @@ class BabyFaceFrame extends JFrame {
     private void register() {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
+        String hashedPassword = hashPassword(password);
 
-        // Create a text file with the username and password
-        try (PrintWriter out = new PrintWriter(username + ".txt")) {
-            out.println(username);
-            out.println(password);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        try {
+            Path path = Paths.get("/usr/" + username + ".txt");
+            Files.write(path, hashedPassword.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        JOptionPane.showMessageDialog(this, "Registration successful!");
-
-        // Clear fields after registration
         usernameField.setText("");
         passwordField.setText("");
     }
@@ -74,28 +63,39 @@ class BabyFaceFrame extends JFrame {
     private void login() {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
+        String hashedPassword = hashPassword(password);
 
-        // Check if the username and password match the saved record
-        try (BufferedReader br = new BufferedReader(new FileReader(username + ".txt"))) {
-            String storedUsername = br.readLine();
-            String storedPassword = br.readLine();
+        try {
+            Path path = Paths.get("/usr/" + username + ".txt");
+            String storedHashedPassword = new String(Files.readAllBytes(path));
 
-            if (storedUsername.equals(username) && storedPassword.equals(password)) {
-                JOptionPane.showMessageDialog(this, "Login successful!");
+            if (hashedPassword.equals(storedHashedPassword)) {
+                // Successful login
                 BabyFacePage babyFacePage = new BabyFacePage(username);
                 babyFacePage.setVisible(true);
-                // Perform additional actions after successful login
+                dispose(); // Close the login frame
             } else {
-                JOptionPane.showMessageDialog(this, "Invalid username or password!");
+                // Incorrect password
+                JOptionPane.showMessageDialog(null, "Incorrect password. Please try again.");
+                passwordField.setText("");
             }
-        } catch (FileNotFoundException ex) {
-            JOptionPane.showMessageDialog(this, "Account does not exist!");
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-        // Clear fields after login attempt
-        usernameField.setText("");
-        passwordField.setText("");
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] messageDigest = md.digest(password.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+            return hashtext;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
