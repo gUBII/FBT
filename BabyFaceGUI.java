@@ -19,11 +19,17 @@ class BabyFaceFrame extends JFrame {
     private JPasswordField passwordField;
     private JButton registerButton;
     private JButton loginButton;
+    private JButton viewQuestionsButton;
+
 
     public BabyFaceFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 400);
         setLayout(new BorderLayout());
+
+
+    // Initialize viewQuestionsButton as disabled
+    viewQuestionsButton.setEnabled(false);
 
         // Register panel
         JPanel registerPanel = new JPanel(new GridLayout(3, 2));
@@ -39,6 +45,13 @@ class BabyFaceFrame extends JFrame {
         registerPanel.add(registerButton);
         add(registerPanel, BorderLayout.NORTH);
 
+        // Questions panel
+        JPanel questionsButtonPanel = new JPanel(new FlowLayout());
+        viewQuestionsButton = new JButton("View Questions");
+        questionsButtonPanel.add(viewQuestionsButton);
+        add(questionsButtonPanel, BorderLayout.SOUTH);
+
+
         // Login panel
         JPanel loginPanel = new JPanel(new FlowLayout());
         JLabel loginLabel = new JLabel("Login with existing account:");
@@ -50,7 +63,28 @@ class BabyFaceFrame extends JFrame {
         // Add action listeners to buttons
         registerButton.addActionListener(e -> register());
         loginButton.addActionListener(e -> login());
+        viewQuestionsButton.addActionListener(e -> viewQuestions());
+
     }
+
+    private void viewQuestions() {
+        try (BufferedReader br = new BufferedReader(new FileReader("questions.txt"))) {
+            StringBuilder questions = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                questions.append(line).append("\n");
+            }
+    
+            JOptionPane.showMessageDialog(this, questions.toString(), "Questions", JOptionPane.INFORMATION_MESSAGE);
+    
+        } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(this, "No questions found!", "Questions", JOptionPane.INFORMATION_MESSAGE);
+    
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
 
     private void register() {
         String username = usernameField.getText();
@@ -82,6 +116,7 @@ class BabyFaceFrame extends JFrame {
 
             if (storedUsername.equals(username) && storedPassword.equals(password)) {
                 JOptionPane.showMessageDialog(this, "Login successful!");
+                viewQuestionsButton.setEnabled(true);
                 BabyFacePage babyFacePage = new BabyFacePage();
                 babyFacePage.setVisible(true);
                 // Perform additional actions after successful login
